@@ -13,6 +13,14 @@ visualizationDiv.appendChild(app.view);
 
 class Ant {
     constructor(x, y){
+        this._moves = [
+            [0, 1],
+            [0, -1],
+            [1, 0],
+            [-1, 0]
+        ]
+        this._targetX = x;
+        this._targetY = y;
         this._x = x;
         this._y = y;
         this.vis = new PIXI.Graphics();
@@ -32,15 +40,30 @@ class Ant {
     get hasFood() {
         return this._hasFood;
     }
-    moveTo(x, y, delta){
+    get possibleMoves() {
+        let moves = [];
+        for(let move of this._moves){
+            // TODO: #1 Add walls and wall-checking
+            let validMove = true;
+            if(validMove){
+                moves.push([this._x + move[0], this._y + move[1]]);
+            }
+        }
+        return moves;
+    }
+    update(delta){
         // TODO: Fix non-straight ant speed
-        this._x = this._x + 1 * Math.sign(x - this._x) * delta;
-        this._y = this._y + 1 * Math.sign(y - this._y) * delta;
+        this._x = this._x + 1 * Math.sign(this._targetX - this._x) * delta;
+        this._y = this._y + 1 * Math.sign(this._targetY - this._y) * delta;
         this.vis.x = this._x;
         this.vis.y = this._y;
     }
     setFoodStatus(status){
         this._hasFood = status;
+    }
+    setTarget(target){
+        this._targetX = target[0];
+        this._targetY = target[1];
     }
     destroy(){
         app.stage.removeChild(this.vis);
@@ -159,11 +182,10 @@ for(i = 0; i < 5; i++){
             }
         }
     }
-    console.log(newX, newY);
     foodSources.push(new FoodSource(newX, newY));
 }
 
-for(i = 0; i < 3; i++){
+for(i = 0; i < 1; i++){
     let newX = 0;
     let newY = 0;
     let done = false;
@@ -190,7 +212,7 @@ for(i = 0; i < 3; i++){
             }
         }
     }
-    antSources.push(new AntSource(newX, newY, 5));
+    antSources.push(new AntSource(newX, newY, 1));
 }
 
 function distance(obj1x, obj1y, obj2x, obj2y){
@@ -200,40 +222,43 @@ function distance(obj1x, obj1y, obj2x, obj2y){
 loopCount = 0;
 function gameLoop(delta){
     loopCount += 1;
+    console.log(antSources);
+    updateAntTargets(antSources, foodSources);
     for(var i = 0; i < antSources.length; i++){
         if((loopCount + ~~(Math.random() * 10)) % 15 == 0)
             antSources[i].createAnt();
         for(var antIndex = 0; antIndex < antSources[i].ants.length; antIndex++){
+            antSources[i].ants[antIndex].update(delta);
             // Ant code
-            let targetX = 0;
-            let targetY = 0;
-            if(!antSources[i].ants[antIndex].hasFood){
-                // Go to closest food source
-                let closestFoodX = 0;
-                let closestFoodY = 0;
-                let closestFoodDis = 100000;
-                for(let food of foodSources){
-                    if(distance(antSources[i].ants[antIndex].x, antSources[i].ants[antIndex].y, food.x, food.y) < closestFoodDis){
-                        closestFoodDis = distance(antSources[i].ants[antIndex].x, antSources[i].ants[antIndex].y, food.x, food.y);
-                        closestFoodX = food.x;
-                        closestFoodY = food.y;
-                        if(closestFoodDis < food.radius){
-                            antSources[i].ants[antIndex].setFoodStatus(true);
-                        }
-                    }
-                }
-                targetX = closestFoodX;
-                targetY = closestFoodY;
-            }
-            else{
-                // Go back to source
-                targetX = antSources[i].x;
-                targetY = antSources[i].y;
-                if(distance(antSources[i].ants[antIndex].x, antSources[i].ants[antIndex].y, antSources[i].x, antSources[i].y) < antSources[i].radius){
-                    antSources[i].ants[antIndex].setFoodStatus(false);
-                }
-            }
-            antSources[i].ants[antIndex].moveTo(targetX, targetY, delta);
+            // let targetX = 0;
+            // let targetY = 0;
+            // if(!antSources[i].ants[antIndex].hasFood){
+            //     // Go to closest food source
+            //     let closestFoodX = 0;
+            //     let closestFoodY = 0;
+            //     let closestFoodDis = 100000;
+            //     for(let food of foodSources){
+            //         if(distance(antSources[i].ants[antIndex].x, antSources[i].ants[antIndex].y, food.x, food.y) < closestFoodDis){
+            //             closestFoodDis = distance(antSources[i].ants[antIndex].x, antSources[i].ants[antIndex].y, food.x, food.y);
+            //             closestFoodX = food.x;
+            //             closestFoodY = food.y;
+            //             if(closestFoodDis < food.radius){
+            //                 antSources[i].ants[antIndex].setFoodStatus(true);
+            //             }
+            //         }
+            //     }
+            //     targetX = closestFoodX;
+            //     targetY = closestFoodY;
+            // }
+            // else{
+            //     // Go back to source
+            //     targetX = antSources[i].x;
+            //     targetY = antSources[i].y;
+            //     if(distance(antSources[i].ants[antIndex].x, antSources[i].ants[antIndex].y, antSources[i].x, antSources[i].y) < antSources[i].radius){
+            //         antSources[i].ants[antIndex].setFoodStatus(false);
+            //     }
+            // }
+            // antSources[i].ants[antIndex].moveTo(targetX, targetY, delta);
         }
     }
 }
