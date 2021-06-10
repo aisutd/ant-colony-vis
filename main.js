@@ -33,9 +33,9 @@ class Ant {
         return this._hasFood;
     }
     moveTo(x, y, delta){
-        // TODO: Fix exponential ant speed
-        this._x = this._x + (x - this._x) * delta;
-        this._y = this._y + (y - this._y) * delta;
+        // TODO: Fix non-straight ant speed
+        this._x = this._x + 1 * Math.sign(x - this._x) * delta;
+        this._y = this._y + 1 * Math.sign(y - this._y) * delta;
         this.vis.x = this._x;
         this.vis.y = this._y;
     }
@@ -142,7 +142,7 @@ var hitTest = function(s2, s1)
 
 var foodSources = [];
 var antSources = [];
-for(i = 0; i < 4; i++){
+for(i = 0; i < 5; i++){
     let newX = 0;
     let newY = 0;
     let done = false;
@@ -194,7 +194,7 @@ for(i = 0; i < 3; i++){
 }
 
 function distance(obj1x, obj1y, obj2x, obj2y){
-    return Math.sqrt(Math.abs(obj1x - obj2x) + Math.abs(obj1y - obj2y));
+    return Math.sqrt(Math.pow(obj1x - obj2x, 2) + Math.pow(obj1y - obj2y, 2));
 }
 
 loopCount = 0;
@@ -217,7 +217,7 @@ function gameLoop(delta){
                         closestFoodDis = distance(antSources[i].ants[antIndex].x, antSources[i].ants[antIndex].y, food.x, food.y);
                         closestFoodX = food.x;
                         closestFoodY = food.y;
-                        if(closestFoodDis * 20 < food.radius){
+                        if(closestFoodDis < food.radius){
                             antSources[i].ants[antIndex].setFoodStatus(true);
                         }
                     }
@@ -229,11 +229,11 @@ function gameLoop(delta){
                 // Go back to source
                 targetX = antSources[i].x;
                 targetY = antSources[i].y;
-                if(distance(antSources[i].ants[antIndex].x, antSources[i].ants[antIndex].y, targetX, targetY) * 20 < antSources[i].radius){
+                if(distance(antSources[i].ants[antIndex].x, antSources[i].ants[antIndex].y, antSources[i].x, antSources[i].y) < antSources[i].radius){
                     antSources[i].ants[antIndex].setFoodStatus(false);
                 }
             }
-            antSources[i].ants[antIndex].moveTo(targetX, targetY, 0.01 * delta);
+            antSources[i].ants[antIndex].moveTo(targetX, targetY, delta);
         }
     }
 }
