@@ -11,13 +11,29 @@ let app = new PIXI.Application({
 //Add the canvas that Pixi automatically created for you to the HTML document
 visualizationDiv.appendChild(app.view);
 
+var antSourceRadius = 25;
+var foodSourceRadius = 20;
+var antRadius = 5;
+var wallRadius = 10;
+
+var defaultAntLimit = 3;
+
+var foodSources = [];
+var antSources = [];
+var walls = [];
+
 class Ant {
     constructor(x, y){
+        this._radius = antRadius;
         this._moves = [
             [0, 1],
             [0, -1],
             [1, 0],
-            [-1, 0]
+            [-1, 0],
+            [0.5, 0.5],
+            [0.5, -0.5],
+            [-0.5, 0.5],
+            [-0.5, -0.5]
         ]
         this._targetX = x;
         this._targetY = y;
@@ -25,7 +41,7 @@ class Ant {
         this._y = y;
         this.vis = new PIXI.Graphics();
         this.vis.beginFill(0xff0000);
-        this.vis.drawCircle(0, 0, 5);
+        this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
         this.vis.y = this._y;
         this._hasFood = false;
@@ -43,11 +59,19 @@ class Ant {
     get possibleMoves() {
         let moves = [];
         for(let move of this._moves){
-            // TODO: #1 Add walls and wall-checking
             let validMove = true;
+            for(let wall of walls){
+                if(distance(this._x + move[0], this._y + move[1], wall.x, wall.y) < wall.radius * 1.15 + this._radius){
+                    validMove = false;
+                    break;
+                }
+            }
             if(validMove){
                 moves.push([this._x + move[0], this._y + move[1]]);
             }
+        }
+        if(moves.length == 0){
+            console.log('No valid moves!');
         }
         return moves;
     }
@@ -57,9 +81,18 @@ class Ant {
         this._y = this._y + 1 * Math.sign(this._targetY - this._y) * delta;
         this.vis.x = this._x;
         this.vis.y = this._y;
-    }
-    setFoodStatus(status){
-        this._hasFood = status;
+        for(let source of foodSources){
+            if(distance(this._x, this._y, source.x, source.y) < source.radius){
+                this._hasFood = true;
+                break;
+            }
+        }
+        for(let source of antSources){
+            if(distance(this._x, this._y, source.x, source.y) < source.radius){
+                this._hasFood = false;
+                break;
+            }
+        }
     }
     setTarget(target){
         this._targetX = target[0];
@@ -71,7 +104,7 @@ class Ant {
 }
 class AntSource {
     constructor(x, y, antLimit){
-        this._radius = 25;
+        this._radius = antSourceRadius;
         this._x = x;
         this._y = y;
         this.antLimit = antLimit;
@@ -108,7 +141,7 @@ class AntSource {
 }
 class FoodSource {
     constructor(x, y){
-        this._radius = 20;
+        this._radius = foodSourceRadius;
         this._x = x;
         this._y = y;
         this.foodAmount = 100;
@@ -146,25 +179,33 @@ class FoodSource {
     }
 }
 
-var hitTest = function(s2, s1)
-{
-    var x1 = s1.x + (s1.width/2),
-    y1 = s1.y + (s1.height/2),
-    w1 = s1.width,
-    h1 = s1.height,
-    x2 = s2.x + ( s2.width / 2 ),
-    y2 = s2.y + ( s2.height / 2 ),
-    w2 = s2.width,
-    h2 = s2.height;
-    
-    if(Math.abs(x2 - x1) + Math.abs(y2 - y1) < Math.max(w1 + 5, w2 + 5)){
-        return true;
+class Wall {
+    constructor(x, y){
+        this._radius = foodSourceRadius;
+        this._x = x;
+        this._y = y;
+        
+        this.vis = new PIXI.Graphics();
+        this.vis.beginFill(0x964b00);
+        this.vis.drawCircle(0, 0, this._radius);
+        this.vis.x = this._x;
+        this.vis.y = this._y;
+        app.stage.addChild(this.vis);
     }
-    return false;
-};
+    get x(){
+        return this._x;
+    }
+    get y(){
+        return this._y;
+    }
+    get radius(){
+        return this._radius;
+    }
+    destroy(){
+        app.stage.removeChild(this.vis);
+    }
+}
 
-var foodSources = [];
-var antSources = [];
 for(i = 0; i < 5; i++){
     let newX = 0;
     let newY = 0;
@@ -212,53 +253,76 @@ for(i = 0; i < 1; i++){
             }
         }
     }
-    antSources.push(new AntSource(newX, newY, 1));
+    antSources.push(new AntSource(newX, newY, defaultAntLimit));
 }
 
-function distance(obj1x, obj1y, obj2x, obj2y){
-    return Math.sqrt(Math.pow(obj1x - obj2x, 2) + Math.pow(obj1y - obj2y, 2));
-}
+app.stage.interactive = true;
+placeFood = false;
+placeAnt = false;
+document.addEventListener('keydown', (event) => {
+    if(event.code == 'ShiftLeft' || event.code == 'ShiftRight'){
+        placeFood = true;
+    }
+    if(event.code == 'ControlLeft' || event.code == 'ControlRight'){
+        placeAnt = true;
+    }
+});
+document.addEventListener('keyup', (event) => {
+    if(event.code == 'ShiftLeft' || event.code == 'ShiftRight'){
+        placeFood = false;
+    }
+    if(event.code == 'ControlLeft' || event.code == 'ControlRight'){
+        placeAnt = false;
+    }
+})
+app.renderer.plugins.interaction.on('pointerup', (event) => {
+    let allowPlacement = true;
+    let objectRadius = placeFood ? foodSourceRadius : (placeAnt ? antSourceRadius : wallRadius);
+    for(let wall of walls){
+        if(distance(wall.x, wall.y, event.data.global.x, event.data.global.y) < wall.radius + objectRadius){
+            allowPlacement = false;
+            break;
+        }
+    }
+    if(allowPlacement){
+        for(let source of foodSources){
+            if(distance(source.x, source.y, event.data.global.x, event.data.global.y) < source.radius + objectRadius){
+                allowPlacement = false;
+                break;
+            }
+        }
+        if(allowPlacement){
+            for(let source of antSources){
+                if(distance(source.x, source.y, event.data.global.x, event.data.global.y) < source.radius + objectRadius){
+                    allowPlacement = false;
+                    break;
+                }
+            }
+            if(allowPlacement){
+                if(placeFood){
+                    foodSources.push(new FoodSource(event.data.global.x, event.data.global.y));
+                }
+                else if(placeAnt){
+                    antSources.push(new AntSource(event.data.global.x, event.data.global.y, defaultAntLimit));
+                }
+                else{
+                    // TODO: Fix ant freezing when placing wall on top of them
+                    walls.push(new Wall(event.data.global.x, event.data.global.y));
+                }
+            }
+        }
+    }
+});
 
 loopCount = 0;
 function gameLoop(delta){
     loopCount += 1;
-    console.log(antSources);
     updateAntTargets(antSources, foodSources);
     for(var i = 0; i < antSources.length; i++){
         if((loopCount + ~~(Math.random() * 10)) % 15 == 0)
             antSources[i].createAnt();
         for(var antIndex = 0; antIndex < antSources[i].ants.length; antIndex++){
             antSources[i].ants[antIndex].update(delta);
-            // Ant code
-            // let targetX = 0;
-            // let targetY = 0;
-            // if(!antSources[i].ants[antIndex].hasFood){
-            //     // Go to closest food source
-            //     let closestFoodX = 0;
-            //     let closestFoodY = 0;
-            //     let closestFoodDis = 100000;
-            //     for(let food of foodSources){
-            //         if(distance(antSources[i].ants[antIndex].x, antSources[i].ants[antIndex].y, food.x, food.y) < closestFoodDis){
-            //             closestFoodDis = distance(antSources[i].ants[antIndex].x, antSources[i].ants[antIndex].y, food.x, food.y);
-            //             closestFoodX = food.x;
-            //             closestFoodY = food.y;
-            //             if(closestFoodDis < food.radius){
-            //                 antSources[i].ants[antIndex].setFoodStatus(true);
-            //             }
-            //         }
-            //     }
-            //     targetX = closestFoodX;
-            //     targetY = closestFoodY;
-            // }
-            // else{
-            //     // Go back to source
-            //     targetX = antSources[i].x;
-            //     targetY = antSources[i].y;
-            //     if(distance(antSources[i].ants[antIndex].x, antSources[i].ants[antIndex].y, antSources[i].x, antSources[i].y) < antSources[i].radius){
-            //         antSources[i].ants[antIndex].setFoodStatus(false);
-            //     }
-            // }
-            // antSources[i].ants[antIndex].moveTo(targetX, targetY, delta);
         }
     }
 }
