@@ -70,9 +70,6 @@ class Ant {
                 moves.push([this._x + move[0], this._y + move[1]]);
             }
         }
-        if(moves.length == 0){
-            console.log('No valid moves!');
-        }
         return moves;
     }
     update(delta){
