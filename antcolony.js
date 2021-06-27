@@ -1,5 +1,22 @@
 // Ant Colony Algorithm code
 
+// Parameters
+var alpha = 0.8; // Constant used to control the influence of pheromones
+var beta = 1.3; // Constant used to control the influence of move attractiveness
+var Q = 5; // Constant used for pheromone updates
+var p = 0.3; // Pheromone evaporation coefficient
+
+/**
+ * Called for each ant during updateAntTargets
+ * @param {Ant} ant 
+ */
+
+function getTarget(ant) {
+    var possibleMoves = ant.possibleMoves; //Get available ant move targets
+    //P = (theromone deposited on transition) ^ (alpha) * (attractiveness of the move) ^ (Beta) / sum((theromone deposited on transition) ^ (alpha) + (attractiveness of the move) ^ (beta))
+    //Attractiveness = constant - distance from nearest food source 
+}
+
 /**
  * Distance helper function
  */
@@ -12,6 +29,7 @@ function distance(obj1x, obj1y, obj2x, obj2y){
  * @param {list} antSources List of AntSource(s) which contain Ants for each source as .ants member
  * @param {list} foodSources List of FoodSource(s) which are targets for Ants
  */
+
 function updateAntTargets(antSources, foodSources){
     // Loop through all AntSources
     for(var sourceIndex = 0; sourceIndex < antSources.length; sourceIndex++){
@@ -40,4 +58,15 @@ function updateAntTargets(antSources, foodSources){
             }
         }
     }
+}
+
+/**
+ * Called after each ant has reached a solution. Updates phermones for each transition
+ * @param {list} antSolutions List of Ant Solution Tours
+ */
+
+function updatePheromones(antSolutions){
+    //Theromone = (1-p) * Theromone + sum(pheromone deposited by ant k)
+    //Pheromone deposited by ant k = Q/Lk if ant k uses curve xy in its tour (Lk = length of ant k's solution, Q = constant), 0 otherwise
+
 }
