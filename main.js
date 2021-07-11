@@ -22,6 +22,26 @@ var foodSources = [];
 var antSources = [];
 var walls = [];
 
+class AntSolution {
+    constructor() {
+        this._path = new Array(10000);
+        this._length = 0;
+    }
+    get path(){
+        return this._path;
+    }
+    get length(){
+        return this._length;
+    }
+    get nthMove(n){
+        return this._path[n];
+    }
+    addMove(move){
+        this._path[this._length] = move;
+        this._length += 1;
+    }
+}
+
 class Ant {
     constructor(x, y){
         this._radius = antRadius;
@@ -45,6 +65,10 @@ class Ant {
         this.vis.x = this._x;
         this.vis.y = this._y;
         this._hasFood = false;
+
+        //Current Solution for the Ant
+        this._solution = AntSolution();
+
         app.stage.addChild(this.vis);
     }
     get x() {
@@ -56,6 +80,10 @@ class Ant {
     get hasFood() {
         return this._hasFood;
     }
+    get solution() {
+        return this._solution;
+    }
+
     get possibleMoves() {
         let moves = [];
         for(let move of this._moves){
@@ -75,6 +103,11 @@ class Ant {
         }
         return moves;
     }
+
+    clearSolution(){
+        this._solution = AntSolution();
+    }
+
     update(delta){
         // TODO: Fix non-straight ant speed
         this._x = this._x + 1 * Math.sign(this._targetX - this._x) * delta;
@@ -97,17 +130,19 @@ class Ant {
     setTarget(target){
         this._targetX = target[0];
         this._targetY = target[1];
+        this._solution.addMove(target);
     }
     destroy(){
         app.stage.removeChild(this.vis);
     }
 }
+
 class AntSource {
     constructor(x, y, antLimit){
         this._radius = antSourceRadius;
         this._x = x;
         this._y = y;
-        this.antLimit = antLimit;
+        this._antLimit = antLimit;
         this._ants = [];
 
         this.vis = new PIXI.Graphics();
@@ -130,13 +165,18 @@ class AntSource {
         return this._radius;
     }
     createAnt(){
-        if(this._ants.length < this.antLimit){
+        if(this._ants.length < this._antLimit){
             this._ants.push(new Ant(this._x, this._y));
         }
     }
     destroy(){
         app.stage.removeChild(this.vis);
-        // TODO: Handle remaning ants - assign to nearest Source if it exists
+        /*
+        for(var antIndex = 0; antIndex < this._ants.length; antIndex++){
+
+        }
+        */
+        // TODO: Handle remaining ants - assign to nearest Source if it exists
     }
 }
 class FoodSource {
@@ -144,7 +184,7 @@ class FoodSource {
         this._radius = foodSourceRadius;
         this._x = x;
         this._y = y;
-        this.foodAmount = 100;
+        this._foodAmount = 100;
         
         this.vis = new PIXI.Graphics();
         this.vis.beginFill(0x00dd00);
@@ -160,15 +200,15 @@ class FoodSource {
         return this._y;
     }
     get foodRemaining(){
-        return this.foodAmount;
+        return this._foodAmount;
     }
     get radius(){
         return this._radius;
     }
     takeFood(){
-        this.foodAmount -= 1;
+        this._foodAmount -= 1;
         // TODO: Have food source shrink when food taken
-        if(this.foodAmount < 0){
+        if(this._foodAmount < 0){
             this.destroy();
             return false;
         }
@@ -315,14 +355,32 @@ app.renderer.plugins.interaction.on('pointerup', (event) => {
 });
 
 loopCount = 0;
+var grid = PheromoneGrid(dims.width, dims.height);
 function gameLoop(delta){
     loopCount += 1;
     updateAntTargets(antSources, foodSources);
     for(var i = 0; i < antSources.length; i++){
+        //Produce an ant if need be
         if((loopCount + ~~(Math.random() * 10)) % 15 == 0)
+        {
             antSources[i].createAnt();
-        for(var antIndex = 0; antIndex < antSources[i].ants.length; antIndex++){
-            antSources[i].ants[antIndex].update(delta);
+        }
+        var sourceX = antSources[i].x();
+        var sourceY = antSources[i].y();
+        //For each ant, check if the ant has completed a solution. If it has, update the pheromone grid and delete the ant. Otherwise, update the ant movement
+        for(var antIndex = 0; antIndex < antSources[i]._ants.length; antIndex++){
+            var antX = antSources[i]._ants[antIndex].x();
+            var antY = antSources[i]._ants[antIndex].y();
+            if (antSources[i]._ants[antIndex].hasFood() && distance(antX, antY, sourceX, sourceY) < source.radius)
+            {
+                grid.updatePheromones(antSources[i]._ants[antIndex].solution);
+                antSources[i]._ants[antIndex].clearSolution();
+            }
+            else
+            {
+                antSources[i]._ants[antIndex].update(delta);
+            }
+            
         }
     }
 }
