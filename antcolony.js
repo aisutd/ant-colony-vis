@@ -1,83 +1,28 @@
 // Ant Colony Algorithm code
 
 // Parameters
-var alpha = 0.8; // Constant used to control the influence of pheromones
-var beta = 1.3; // Constant used to control the influence of move attractiveness
-var Q = 5; // Constant used for pheromone updates
-var p = 0.3; // Pheromone evaporation coefficient
-var A = 100; // Constant used for calculating attraction
+var alpha = 0.7; // Constant used to control the influence of pheromones
+var beta = 0.6; // Constant used to control the influence of move attractiveness
+var Q = 100; // Constant used for pheromone updates
+var p = 0.4; // Pheromone evaporation coefficient
 
-/**
- * Called for each ant during updateAntTargets
- * @param {Ant} ant 
- */
-
-
-
-class PheromoneGrid {
-    constructor(width, height) {
-        this.width = width * 2;
-        this.height = height * 2;
-        this.grid = new Array(height * 2);
-        for (var i = 0; i < height; i++)
-        {
-            this.grid[i] = new Array(width * 2);
-            for (var j = 0; j < width * 2; j++)
-            {
-                this.grid[i][j] = 0.0;
-            }
-        }
-    }
-    getPheromone(x,y) {
-        return this.grid[y * 2][x * 2];
-    }
-
-    updatePheromones(solution){
-        //Pheromone deposited by ant k = Q/Lk if ant k uses curve xy in its tour (Lk = length of ant k's solution, Q = constant), 0 otherwise
-        newPheromone = new Array(this.height)
-        for (var i = 0; i < this.height; i++)
-        {
-            newPheromone[i] = new Array(this.width);
-            for (var j = 0; j < this.width; j++)
-            {
-                newPheromone[i][j] = 0.0;
-            }
-        }
-
-        length = solution.list.length
-        for (var a = 0; a < length; a++)
-        {
-            move = solution.nthMove(a);
-            x = move[0];
-            y = move[1];
-            newPheromone[y * 2][x * 2] += Q / length;
-        }
-        for (var y = 0; y < height; y++)
-        {
-            for (var x = 0; x < width; x++)
-            {
-                //Pheromone = (1-p) * Pheromone + sum(pheromone deposited by ant k)
-                this.grid[y * 2][x * 2] = (1 - p) * this.grid[y * 2][x * 2] + newPheromone[y * 2][x * 2];
-            }
-        }
-    }
-}
+var explorationBias = 0.3;
 
 /**
  * Distance helper function
  */
 function distance(obj1x, obj1y, obj2x, obj2y){
-    return Math.sqrt(Math.pow(obj1x - obj2x, 2) + Math.pow(obj1y - obj2y, 2));
+    return Math.sqrt(Math.pow(Math.abs(obj1x - obj2x), 2) + Math.pow(Math.abs(obj1y - obj2y), 2));
 }
 
 function getDistanceToNearestFoodSource(pos, foodSources) {
-    var minDist = A;
-    var posX = ant.x();
-    var posY = ant.y();
-    for (let source in foodSources)
+    var minDist = 9999999;
+    var posX = pos[0];
+    var posY = pos[1];
+    for (let i = 0; i < foodSources.length; i++)
     {
-        x = source.x();
-        y = source.y();
+        x = foodSources[i].x;
+        y = foodSources[i].y;
         dist = distance(posX, posY, x, y);
         if (dist < minDist)
         {
@@ -87,88 +32,228 @@ function getDistanceToNearestFoodSource(pos, foodSources) {
     return minDist;
 }
 
-function getTarget(ant, foodSources) {
-    var possibleMoves = ant.possibleMoves; //Get available ant move targets
-    //Attractiveness = constant - distance from nearest food source 
-    var antX = ant.x();
-    var antY = ant.y();
-    var tempSum = 0.0;
-    var rawMoveProbs = new Array(8);
-    var i = 0;
-    for (let move in possibleMoves)
+function getDistanceToNearestAntSource(pos, antSources) {
+    var minDist = 9999999;
+    var posX = pos[0];
+    var posY = pos[1];
+    for (let i = 0; i < antSources.length; i++)
     {
-        var xMove = move[0];
-        var yMove = move[1];
-        var x = xMove + antX;
-        var y = yMove + anyY;
-        var pos = [x, y];
-        var attractiveness = A - getDistanceToNearestFoodSource(pos, foodSources);
-        var theromone = getPheromone(x,y);
-        //P = (theromone deposited on transition) ^ (alpha) * (attractiveness of the move) ^ (Beta) / sum((theromone deposited on transition) ^ (alpha) + (attractiveness of the move) ^ (beta))
-        var prob = (theromone ^ alpha) * (attractiveness ^ beta); 
-        rawMoveProbs[i] = prob;
-        tempSum += prob;
-        i++;
-    }
-    for (var a = 0; a < 8; a++)
-    {
-        rawMoveProbs[a] /= tempSum;
-    }
-    
-    var randomVal = Math.random();
-    var val = 0;
-    for (var a = 0; a < 8; a++)
-    {
-        val += rawMoveProbs[a];
-        if (randomVal < val)
+        x = antSources[i].x;
+        y = antSources[i].y;
+        dist = distance(posX, posY, x, y);
+        if (dist < minDist)
         {
-            return possibleMoves[a];
+            minDist = dist;
         }
     }
-    
-    
+    return minDist;
 }
 
-function getTargetReturn(ant, antSource) {
-    var possibleMoves = ant.possibleMoves; //Get available ant move targets
-    //Attractiveness = constant - distance from nearest food source 
-    var antX = ant.x();
-    var antY = ant.y();
-    var tempSum = 0.0;
-    var rawMoveProbs = new Array(8);
-    var i = 0;
-    for (let move in possibleMoves)
+function getAttractiveness(moves, foodSources) {
+    var maxDist = 0;
+    var minDist = 9999999;
+    var dists = new Array(moves.length);
+    var attractivenesses = new Array(moves.length);
+    for (let i = 0; i < moves.length; i++)
     {
-        var xMove = move[0];
-        var yMove = move[1];
-        var x = xMove + antX;
-        var y = yMove + anyY;
-        var pos = [x, y];
-        var attractiveness = A - distance(x,y,antSource.x(), antSource.y());
-        var theromone = getPheromone(x,y);
+        var move = moves[i];
+        var x = move[0];
+        var y = move[1];
+        var newPos = [x, y];
+        var dist = getDistanceToNearestFoodSource(newPos, foodSources);
+        dists[i] = dist;
+        if (dist < minDist)
+        {
+            minDist = dist;
+        }
+        if (dist > maxDist)
+        {
+            maxDist = dist;
+        }
+    }
+    
+    for (let i = 0; i < moves.length; i++)
+    {
+        attractivenesses[i] = ((maxDist - dists[i]) / (1 + maxDist - minDist)) + 1;
+    }
+    return attractivenesses;
+}
+
+function getAttractivenessReturn(moves, antSources) {
+    var maxDist = 0;
+    var minDist = 9999999;
+    var dists = new Array(moves.length);
+    var attractivenesses = new Array(moves.length);
+    for (let i = 0; i < moves.length; i++)
+    {
+        var move = moves[i];
+        var x = move[0];
+        var y = move[1];
+        var newPos = [x, y];
+        var dist = getDistanceToNearestAntSource(newPos, antSources);
+        dists[i] = dist;
+        if (dist < minDist)
+        {
+            minDist = dist;
+        }
+        if (dist > maxDist)
+        {
+            maxDist = dist;
+        }
+    }
+    
+    for (let i = 0; i < moves.length; i++)
+    {
+        attractivenesses[i] = ((maxDist - dists[i]) / (1 + maxDist - minDist)) + 1;
+    }
+    return attractivenesses;
+}
+
+function getTarget(ant, foodSources, pheromoneGrid) {
+    var possibleMoves = ant.possibleMoves; //Get available ant move targets
+
+
+    if (ant._explorationTime <= 0)
+    {
+        ant._explorationTime = ant._explorationTimeStart;
+        //Biased toward exploration
+        if (Math.random() < explorationBias)
+        {
+            ant._exploring = true;
+        }
+        else
+        {
+            ant._exploring = false;
+        }
+    }
+    else
+    {
+        ant._explorationTime--;
+    }
+
+    if (ant._exploring)
+    {
+        return possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+    }
+
+
+
+    //Attractiveness = constant - distance from nearest food source 
+    var tempSum = 0.0;
+    var rawMoveProbs = new Array(ant.possibleMoves.length);
+    //pheromoneGrid.logGrid();
+    var attractivenesses = getAttractiveness(possibleMoves, foodSources);
+    for (let i = 0; i < possibleMoves.length; i++)
+    {
+        var move = possibleMoves[i];
+        var x = move[0];
+        var y = move[1];
+        var attractiveness = attractivenesses[i];
+        var theromone = pheromoneGrid.getPheromone(x,y);
         //P = (theromone deposited on transition) ^ (alpha) * (attractiveness of the move) ^ (Beta) / sum((theromone deposited on transition) ^ (alpha) + (attractiveness of the move) ^ (beta))
-        var prob = (theromone ^ alpha) * (attractiveness ^ beta); 
+        var prob = Math.pow(theromone, alpha) * Math.pow(attractiveness, beta); 
         rawMoveProbs[i] = prob;
         tempSum += prob;
-        i++;
+        
     }
-    for (var a = 0; a < 8; a++)
+    if (tempSum == 0.0)
     {
-        rawMoveProbs[a] /= tempSum;
+        for (var a = 0; a < ant.possibleMoves.length; a++)
+        {
+            rawMoveProbs[a] = 0.125;
+        }
+    }
+    else
+    {
+        for (var a = 0; a < ant.possibleMoves.length; a++)
+        {
+            rawMoveProbs[a] /= tempSum;
+        }
     }
     
     var randomVal = Math.random();
-    var val = 0;
+    val = 0;
     for (var a = 0; a < 8; a++)
     {
-        val += rawMoveProbs[a];
+        val = val + rawMoveProbs[a];
         if (randomVal < val)
         {
             return possibleMoves[a];
         }
+    } 
+}
+
+function getTargetReturn(ant, antSources, pheromoneGrid) {
+    var possibleMoves = ant.possibleMoves; //Get available ant move targets
+
+
+    if (ant._explorationTime <= 0)
+    {
+        ant._explorationTime = ant._explorationTimeStart;
+        //Biased toward exploration
+        if (Math.random() < explorationBias)
+        {
+            ant._exploring = true;
+        }
+        else
+        {
+            ant._exploring = false;
+        }
+    }
+    else
+    {
+        ant._explorationTime--;
+    }
+
+    if (ant._exploring)
+    {
+        return possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+    }
+
+
+    //Attractiveness = constant - distance from nearest food source 
+    var tempSum = 0.0;
+    var rawMoveProbs = new Array(ant.possibleMoves.length);
+    //pheromoneGrid.logGrid();
+    var attractivenesses = getAttractivenessReturn(possibleMoves, antSources);
+    for (let i = 0; i < possibleMoves.length; i++)
+    {
+        var move = possibleMoves[i];
+        var x = move[0];
+        var y = move[1];
+        var attractiveness = attractivenesses[i];
+        var theromone = pheromoneGrid.getPheromone(x,y);
+        //P = (theromone deposited on transition) ^ (alpha) * (attractiveness of the move) ^ (Beta) / sum((theromone deposited on transition) ^ (alpha) + (attractiveness of the move) ^ (beta))
+        var prob = Math.pow(theromone, alpha) * Math.pow(attractiveness, beta); 
+        rawMoveProbs[i] = prob;
+        tempSum += prob;
+        
+    }
+    if (tempSum == 0.0)
+    {
+        for (var a = 0; a < ant.possibleMoves.length; a++)
+        {
+            rawMoveProbs[a] = 0.125;
+        }
+    }
+    else
+    {
+        for (var a = 0; a < ant.possibleMoves.length; a++)
+        {
+            rawMoveProbs[a] /= tempSum;
+        }
     }
     
-    
+    var randomVal = Math.random();
+    val = 0;
+    for (var a = 0; a < 8; a++)
+    {
+        val = val + rawMoveProbs[a];
+        if (randomVal < val)
+        {
+            return possibleMoves[a];
+        }
+    } 
 }
 
 /**
@@ -177,30 +262,29 @@ function getTargetReturn(ant, antSource) {
  * @param {list} foodSources List of FoodSource(s) which are targets for Ants
  */
 
-function updateAntTargets(antSources, foodSources){
+function updateAntTargets(antSources, foodSources, pheromoneGrid){
     // Loop through all AntSources
-    for(var sourceIndex = 0; sourceIndex < antSources.length; sourceIndex++){
-        // Loop through every ant in each AntSource
-        for(var antIndex = 0; antIndex < antSources[sourceIndex].ants.length; antIndex++){
-            var ant = antSources[sourceIndex].ants[antIndex]; // Get ant
-            var possibleMoves = ant.possibleMoves; // Get available ant move targets
-            
-            // As a placeholder, I am going to have the ant choose the action that leads to the closest food source
-            if(possibleMoves.length > 0){
-                if (ant.hasFood())
-                {
-                    var bestTarget = getTargetReturn(ant, antSources[sourceIndex]);
-                }
-                else
-                {
-                    var bestTarget = getTarget(ant, foodSources);
-                }
-                // var randomTarget = possibleMoves[Math.floor(Math.random() * possibleMoves.length)]; // Choose random target as placeholder
-                ant.setTarget(bestTarget); // Set target for ant to move to on this loop cycle
+    for(var antIndex = 0; antIndex < ants.length; antIndex++){
+        var ant = ants[antIndex]; // Get ant
+        var possibleMoves = ant.possibleMoves; // Get available ant move targets
+        
+        // As a placeholder, I am going to have the ant choose the action that leads to the closest food source
+        if(possibleMoves.length > 0){
+            if (ant.hasFood)
+            {
+                var bestTarget = getTargetReturn(ant, antSources, pheromoneGrid);
+                ant.setTarget(bestTarget, true);
             }
-            else{
-                ant.setTarget([ant.x, ant.y]); // Ant has no possible moves, guess it can only stand still until end of time
+            else
+            {
+                var bestTarget = getTarget(ant, foodSources, pheromoneGrid);
+                ant.setTarget(bestTarget, true);
             }
+            // var randomTarget = possibleMoves[Math.floor(Math.random() * possibleMoves.length)]; // Choose random target as placeholder
+             // Set target for ant to move to on this loop cycle
+        }
+        else{
+            ant.setTarget([ant.x, ant.y], false); // Ant has no possible moves, guess it can only stand still until end of time
         }
     }
 }
