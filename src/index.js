@@ -1,8 +1,10 @@
+import { distance, updateAntTargets } from './antcolony.js'
+import { Application, Graphics } from 'pixi.js'
 //Create a Pixi Application
 var visualizationDiv = document.getElementById('visualization');
 
 let dims = visualizationDiv.getBoundingClientRect();
-let app = new PIXI.Application({
+let app = new Application({
     width: dims.width,
     height: dims.height,
     backgroundColor: 0xbbbbbb
@@ -40,7 +42,7 @@ class Ant {
         this._targetY = y;
         this._x = x;
         this._y = y;
-        this.vis = new PIXI.Graphics();
+        this.vis = new Graphics();
         this.vis.beginFill(0xff0000);
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
@@ -118,7 +120,7 @@ class AntSource {
         this.antLimit = antLimit;
         this._ants = [];
 
-        this.vis = new PIXI.Graphics();
+        this.vis = new Graphics();
         this.vis.beginFill(0x000000);
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
@@ -154,7 +156,7 @@ class FoodSource {
         this._y = y;
         this.foodAmount = defaultFoodAmount;
         
-        this.vis = new PIXI.Graphics();
+        this.vis = new Graphics();
         this.vis.beginFill(0x00dd00);
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
@@ -194,7 +196,7 @@ class Wall {
         this._x = x;
         this._y = y;
         
-        this.vis = new PIXI.Graphics();
+        this.vis = new Graphics();
         this.vis.beginFill(0x964b00);
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
@@ -215,7 +217,7 @@ class Wall {
     }
 }
 
-for(i = 0; i < 5; i++){
+for(let i = 0; i < 5; i++){
     let newX = 0;
     let newY = 0;
     let done = false;
@@ -235,7 +237,7 @@ for(i = 0; i < 5; i++){
     foodSources.push(new FoodSource(newX, newY));
 }
 
-for(i = 0; i < 1; i++){
+for(let i = 0; i < 1; i++){
     let newX = 0;
     let newY = 0;
     let done = false;
@@ -266,8 +268,8 @@ for(i = 0; i < 1; i++){
 }
 
 app.stage.interactive = true;
-placeFood = false;
-placeAnt = false;
+let placeFood = false;
+let placeAnt = false;
 document.addEventListener('keydown', (event) => {
     if(event.code == 'ShiftLeft' || event.code == 'ShiftRight'){
         placeFood = true;
@@ -323,7 +325,7 @@ app.renderer.plugins.interaction.on('pointerup', (event) => {
     }
 });
 
-loopCount = 0;
+let loopCount = 0;
 function gameLoop(delta){
     loopCount += 1;
     updateAntTargets(antSources, foodSources);

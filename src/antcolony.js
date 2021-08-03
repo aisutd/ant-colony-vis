@@ -20,7 +20,7 @@ function getTarget(ant) {
 /**
  * Distance helper function
  */
-function distance(obj1x, obj1y, obj2x, obj2y){
+export function distance(obj1x, obj1y, obj2x, obj2y){
     return Math.sqrt(Math.pow(obj1x - obj2x, 2) + Math.pow(obj1y - obj2y, 2));
 }
 
@@ -30,7 +30,7 @@ function distance(obj1x, obj1y, obj2x, obj2y){
  * @param {list} foodSources List of FoodSource(s) which are targets for Ants
  */
 
-function updateAntTargets(antSources, foodSources){
+export function updateAntTargets(antSources, foodSources){
     // Loop through all AntSources
     for(var sourceIndex = 0; sourceIndex < antSources.length; sourceIndex++){
         // Loop through every ant in each AntSource
