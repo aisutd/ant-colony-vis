@@ -1,5 +1,7 @@
 import { distance, updateAntTargets } from './antcolony.js'
-import { Application, Graphics } from 'pixi.js'
+import { Application, Graphics, Container, Stage } from 'pixi.js'
+// window.PIXI = PIXI
+import { Layer, Group } from '@pixi/layers'
 //Create a Pixi Application
 var visualizationDiv = document.getElementById('visualization');
 
@@ -25,6 +27,26 @@ var foodSources = [];
 var antSources = [];
 var walls = [];
 
+app.stage = new Stage();
+
+app.stage.sortableChildren = true;
+const antGroup = new Group(0, false);
+const sourceGroup = new Group(1, false);
+const buttonGroup = new Group(2, false);
+var antLayer = new Layer(antGroup);
+var sourceLayer = new Layer(sourceGroup);
+var buttonLayer = new Layer(buttonGroup);
+app.stage.addChild(antLayer);
+app.stage.addChild(sourceLayer);
+app.stage.addChild(buttonLayer);
+
+let testRect = new Graphics();
+testRect.beginFill(0x000000);
+testRect.drawRect(100, 100, 10, 10);
+testRect.parentGroup = buttonGroup;
+testRect.parentLayer = buttonLayer;
+app.stage.addChild(testRect);
+
 class Ant {
     constructor(x, y){
         this._radius = antRadius;
@@ -48,6 +70,7 @@ class Ant {
         this.vis.x = this._x;
         this.vis.y = this._y;
         this._hasFood = false;
+        this.vis.parentGroup = antGroup;
         app.stage.addChild(this.vis);
     }
     get x() {
@@ -125,6 +148,7 @@ class AntSource {
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
         this.vis.y = this._y;
+        this.vis.parentGroup = sourceGroup;
         app.stage.addChild(this.vis);
     }
     get x(){
@@ -161,6 +185,7 @@ class FoodSource {
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
         this.vis.y = this._y;
+        this.vis.parentGroup = sourceGroup;
         app.stage.addChild(this.vis);
     }
     get x(){
@@ -201,6 +226,8 @@ class Wall {
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
         this.vis.y = this._y;
+        this.vis.parentGroup = sourceGroup;
+        this.vis.parentLayer = sourceLayer;
         app.stage.addChild(this.vis);
     }
     get x(){
