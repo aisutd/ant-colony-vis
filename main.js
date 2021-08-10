@@ -16,15 +16,17 @@ var foodSourceRadius = 10;
 var antRadius = 5;
 var wallRadius = 10;
 
+var pheromoneRadius = 15;
+
 var numberOfAntSources = 1;
-var numberOfFoodSources = 100;
+var numberOfFoodSources = 1;
 
 var id = 0;
 var deleteIds = [];
 
 var antSourceId = 0;
 
-var defaultAntLimit = 1000;
+var defaultAntLimit = 80;
 
 var foodSources = [];
 var antSources = [];
@@ -34,7 +36,7 @@ var ants = [];
 
 var gridResolution = 4;
 
-var speed = 3;
+var speed = 5;
 
 class AntSolution {
     constructor() {
@@ -110,6 +112,26 @@ class PheromoneGrid {
         return this._grid[y][x];
     }
 
+    setPheromone(x,y, pheromone) {
+        if (x < 0.0) 
+        {
+            x = 0;
+        }
+        if (x > this._width - 1)
+        {
+            x = this._width - 1;
+        }
+        if (y < 0.0)
+        {
+            y = 0;
+        }
+        if (y > this._height - 1)
+        {
+            y = this._height - 1;
+        }
+        this._grid[y][x] = pheromone;
+    }
+
     addPheromone(x,y, pheromone)
     {
         if (x < 0.0) 
@@ -152,7 +174,7 @@ class PheromoneGrid {
         this._grid[y][x] *= 1-p;
     }
 
-    updatePheromones(antSources){
+    updatePheromones(){
         var solutions = this._solutions;
         //Pheromone deposited by ant k = Q/Lk if ant k uses curve xy in its tour (Lk = length of ant k's solution, Q = constant), 0 otherwise
         this.vis.destroy();
@@ -164,20 +186,15 @@ class PheromoneGrid {
                 var move = solutions[a].nthMove(b);
                 var x = move[0];
                 var y = move[1];
-                var tooClose = false;
-                for (var c = 0; c < antSources.length; c++)
+                for (var x2 = -pheromoneRadius; x2 < pheromoneRadius + 1; x2++)
                 {
-                    if ((distance(antSources[c]._x + move[0], antSources[c]._y + move[1], x, y) < 2.0 * antSources[c].radius))
+                    for (var y2 = -pheromoneRadius; y2 < pheromoneRadius + 1; y2++)
                     {
-                        tooClose = true;
-                        break;
+                        var newX = x + x2;
+                        var newY = y + y2;
+                        this.addPheromone(newX, newY, Q / solutions[a].length);
                     }
-                }
-                if (!tooClose)
-                {
-                    this.addPheromone(x, y, Q / solutions[a].length);
-                }     
-                
+                }      
             }
         }
         for (var x = 0; x < this._width / gridResolution; x ++)
@@ -239,10 +256,17 @@ class Ant {
         this._timeLeft = lifespan;
         this._id = id;
         id += 1;
-        this._explorationTimeStart = 20;
+        this._explorationTimeStart = 10;
         this._explorationTime = this._explorationTimeStart;
-        this._exploring = true;
+        this._exploring = false;
+        this._explorationX = -1;
+        this._explorationY = -1;
         this._spawnId = spawnId;
+        this._moveAwayX = this._x;
+        this._moveAwayY = this._y;
+        this._moveAwayRadius = 20;
+        this._moveAwayTimeStart = 50;
+        this._moveAwayTime = this._moveAwayTimeStart;
 
         //Current Solution for the Ant
         this._solution = new AntSolution();
@@ -277,6 +301,15 @@ class Ant {
             {
                 validMove = false;
             }
+
+            if (distance(this._x + move[0], this._y + move[1], this._moveAwayX, this._moveAwayY) <= this._moveAwayRadius)
+            {
+                if (distance(this._x + move[0], this._y + move[1], this._moveAwayX, this._moveAwayY) < distance(this._x, this._y, this._moveAwayX, this._moveAwayY))
+                {
+                    validMove = false;
+                }
+            }
+
             if(validMove){
                 moves.push([this._x + move[0], this._y + move[1]]);
             }
@@ -307,6 +340,15 @@ class Ant {
             this._timeLeft--;
         }
         */
+
+        this._moveAwayTime--;
+        if (this._moveAwayTime <= 0)
+        {
+            this._moveAwayTime = this._moveAwayTimeStart;
+            this._moveAwayX = this._x;
+            this._moveAwayY = this._y;
+        }
+
         if (this._targetX > dims.width - 1)
         {
             this._x = dims.width - 1;
@@ -350,11 +392,8 @@ class Ant {
                 {
                     if (source2._id == this._spawnId)
                     {
-                        if (source2._antsToSave > 0)
-                        {
-                            source2._antsToSave--;
-                        }
-                        else
+                        source2._antsToSave--;
+                        if (source2._antsToSave <= 0)
                         {
                             source2.deleteSourceAnts();
                         }
@@ -404,7 +443,7 @@ class AntSource {
         this.vis.x = this._x;
         this.vis.y = this._y;
         this._id = antSourceId;
-        this._antsToSaveStart = 10;
+        this._antsToSaveStart = 1;
         this._antsToSave = this._antsToSaveStart;
         antSourceId++;
         app.stage.addChild(this.vis);
@@ -486,7 +525,7 @@ class FoodSource {
         this._radius = foodSourceRadius;
         this._x = x;
         this._y = y;
-        this._foodAmount = 50;
+        this._foodAmount = 500;
         
         this.vis = new PIXI.Graphics();
         this.vis.beginFill(0x00dd00);
@@ -724,7 +763,7 @@ function gameLoop(delta){
 
     if (isRoundDone)
     {
-        grid.updatePheromones(antSources);
+        grid.updatePheromones();
         for (var i = 0; i < antSources.length; i++)
         {
             antSources[i].resetAntCount();
