@@ -1,7 +1,6 @@
 import { distance, updateAntTargets } from './antcolony.js'
 import { Application, Graphics, Container, Stage } from 'pixi.js'
-// window.PIXI = PIXI
-import { Layer, Group } from '@pixi/layers'
+
 //Create a Pixi Application
 var visualizationDiv = document.getElementById('visualization');
 
@@ -27,26 +26,6 @@ var foodSources = [];
 var antSources = [];
 var walls = [];
 
-app.stage = new Stage();
-
-app.stage.sortableChildren = true;
-const antGroup = new Group(0, false);
-const sourceGroup = new Group(1, false);
-const buttonGroup = new Group(2, false);
-var antLayer = new Layer(antGroup);
-var sourceLayer = new Layer(sourceGroup);
-var buttonLayer = new Layer(buttonGroup);
-app.stage.addChild(antLayer);
-app.stage.addChild(sourceLayer);
-app.stage.addChild(buttonLayer);
-
-let testRect = new Graphics();
-testRect.beginFill(0x000000);
-testRect.drawRect(100, 100, 10, 10);
-testRect.parentGroup = buttonGroup;
-testRect.parentLayer = buttonLayer;
-app.stage.addChild(testRect);
-
 class Ant {
     constructor(x, y){
         this._radius = antRadius;
@@ -70,7 +49,6 @@ class Ant {
         this.vis.x = this._x;
         this.vis.y = this._y;
         this._hasFood = false;
-        this.vis.parentGroup = antGroup;
         app.stage.addChild(this.vis);
     }
     get x() {
@@ -148,7 +126,6 @@ class AntSource {
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
         this.vis.y = this._y;
-        this.vis.parentGroup = sourceGroup;
         app.stage.addChild(this.vis);
     }
     get x(){
@@ -185,7 +162,6 @@ class FoodSource {
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
         this.vis.y = this._y;
-        this.vis.parentGroup = sourceGroup;
         app.stage.addChild(this.vis);
     }
     get x(){
@@ -226,8 +202,6 @@ class Wall {
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
         this.vis.y = this._y;
-        this.vis.parentGroup = sourceGroup;
-        this.vis.parentLayer = sourceLayer;
         app.stage.addChild(this.vis);
     }
     get x(){
@@ -253,7 +227,7 @@ for(let i = 0; i < 5; i++){
         newY = (Math.random() * 0.8 + 0.1) * app.renderer.height;
         done = true;
         for(let source of foodSources){
-            if(distance(source.x, source.y, newX, newY) < source.radius){
+            if(distance(source.x, source.y, newX, newY) < source.radius + source.radius * 2){
                 newX = (Math.random() * 0.8 + 0.1) * app.renderer.width;
                 newY = (Math.random() * 0.8 + 0.1) * app.renderer.height;
                 done = false;
@@ -273,7 +247,7 @@ for(let i = 0; i < 1; i++){
         newY = (Math.random() * 0.8 + 0.1) * app.renderer.height;
         done = true;
         for(let source of antSources){
-            if(distance(source.x, source.y, newX, newY) < source.radius){
+            if(distance(source.x, source.y, newX, newY) < source.radius + source.radius * 2){
                 newX = (Math.random() * 0.8 + 0.1) * app.renderer.width;
                 newY = (Math.random() * 0.8 + 0.1) * app.renderer.height;
                 done = false;
@@ -282,7 +256,7 @@ for(let i = 0; i < 1; i++){
         }
         if(done){
             for(let source of foodSources){
-                if(distance(source.x, source.y, newX, newY) < source.radius){
+                if(distance(source.x, source.y, newX, newY) < source.radius + source.radius * 2){
                     newX = (Math.random() * 0.8 + 0.1) * app.renderer.width;
                     newY = (Math.random() * 0.8 + 0.1) * app.renderer.height;
                     done = false;
@@ -295,57 +269,78 @@ for(let i = 0; i < 1; i++){
 }
 
 app.stage.interactive = true;
-let placeFood = false;
-let placeAnt = false;
+let deleteObject = false;
 document.addEventListener('keydown', (event) => {
-    if(event.code == 'ShiftLeft' || event.code == 'ShiftRight'){
-        placeFood = true;
-    }
     if(event.code == 'ControlLeft' || event.code == 'ControlRight'){
-        placeAnt = true;
+        deleteObject = true;
     }
 });
 document.addEventListener('keyup', (event) => {
-    if(event.code == 'ShiftLeft' || event.code == 'ShiftRight'){
-        placeFood = false;
-    }
     if(event.code == 'ControlLeft' || event.code == 'ControlRight'){
-        placeAnt = false;
+        deleteObject = false;
     }
-})
+});
+
 app.renderer.plugins.interaction.on('pointerup', (event) => {
-    let allowPlacement = true;
-    let objectRadius = placeFood ? foodSourceRadius : (placeAnt ? antSourceRadius : wallRadius);
-    for(let wall of walls){
-        if(distance(wall.x, wall.y, event.data.global.x, event.data.global.y) < wall.radius + objectRadius){
-            allowPlacement = false;
-            break;
-        }
+    if(deleteObject){
+        walls = walls.filter(function(item){
+            if(distance(item.x, item.y, event.data.global.x, event.data.global.y) < item.radius){
+                item.destroy();
+                return false;
+            }
+            return true;
+        });
+        foodSources = foodSources.filter(function(item){
+            if(distance(item.x, item.y, event.data.global.x, event.data.global.y) < item.radius){
+                item.destroy();
+                return false;
+            }
+            return true;
+        });
+        antSources = antSources.filter(function(item){
+            if(distance(item.x, item.y, event.data.global.x, event.data.global.y) < item.radius){
+                item.destroy();
+                return false;
+            }
+            return true;
+        });
     }
-    if(allowPlacement){
-        for(let source of foodSources){
-            if(distance(source.x, source.y, event.data.global.x, event.data.global.y) < source.radius + objectRadius){
+    else{
+        let allowPlacement = true;
+        let placeFood = $('#selectorToggle input:radio:checked').val() == 2;
+        let placeAnt = $('#selectorToggle input:radio:checked').val() == 3;
+        let objectRadius = placeFood ? foodSourceRadius : (placeAnt ? antSourceRadius : wallRadius);
+        for(let wall of walls){
+            if(distance(wall.x, wall.y, event.data.global.x, event.data.global.y) < wall.radius + objectRadius){
                 allowPlacement = false;
                 break;
             }
         }
         if(allowPlacement){
-            for(let source of antSources){
+            for(let source of foodSources){
                 if(distance(source.x, source.y, event.data.global.x, event.data.global.y) < source.radius + objectRadius){
                     allowPlacement = false;
                     break;
                 }
             }
             if(allowPlacement){
-                if(placeFood){
-                    foodSources.push(new FoodSource(event.data.global.x, event.data.global.y));
+                for(let source of antSources){
+                    if(distance(source.x, source.y, event.data.global.x, event.data.global.y) < source.radius + objectRadius){
+                        allowPlacement = false;
+                        break;
+                    }
                 }
-                else if(placeAnt){
-                    antSources.push(new AntSource(event.data.global.x, event.data.global.y, defaultAntLimit));
-                }
-                else{
-                    // TODO: Fix ant freezing when placing wall on top of them
-                    walls.push(new Wall(event.data.global.x, event.data.global.y));
+                if(allowPlacement){
+                    if(placeFood){
+                        foodSources.push(new FoodSource(event.data.global.x, event.data.global.y));
+                    }
+                    else if(placeAnt){
+                        antSources.push(new AntSource(event.data.global.x, event.data.global.y, defaultAntLimit));
+                    }
+                    else{
+                        // TODO: Fix ant freezing when placing wall on top of them
+                        walls.push(new Wall(event.data.global.x, event.data.global.y));
+                    }
                 }
             }
         }
