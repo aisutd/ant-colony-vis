@@ -31,6 +31,20 @@
           <form>
             <p>Welcome to AIS's Ant Colony Optimization Visualization! The objective of the "ants" is to find the shortest path to the food. This algorithm is applicable to any shortest-path problem, and excels in changing spaces (where the shortest-path does not stay static). Click on the visualization to add elements or try adjusting the parameters below!</p>
             <div class="form-group">
+              <label for="selectorToggle">Select one of the options below to change what you click to place! Ctrl + Click to remove them.</label>
+              <div id='selectorToggle' class="btn-group btn-group-toggle" data-toggle="buttons">
+                <label class="btn btn-secondary btn-warning active">
+                  <input type="radio" name="selectors" value="1" checked> Wall
+                </label>
+                <label class="btn btn-secondary btn-success">
+                  <input type="radio" name="selectors" value="2"> Food Source
+                </label>
+                <label class="btn btn-secondary btn-dark">
+                  <input type="radio" name="selectors" value="3"> Ant Source
+                </label>
+              </div>  
+            </div>
+            <div class="form-group">
               <label for="visSpeed">Visualization Speed</label>
               <input type="number" class="form-control" id="visSpeed" value="1">
               <small id="visHelp" class="form-text text-muted">Speed of Visualization - keep between 0 to 2 for stable results</small>
@@ -74,7 +88,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="pixi.min.js"></script>
-    <script type="text/javascript" src="antcolony.js"></script>
-    <script type="text/javascript" src="main.js"></script>
+    <!-- <script type="text/javascript" src="antcolony.js"></script>
+    <script type="text/javascript" src="main.js"></script> -->
   </body>
 </html>

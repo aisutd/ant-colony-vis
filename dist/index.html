@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+      html, body{
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+      .main-wrapper{
+        height: 100%;
+      }
+      #visualization{
+        height: 100%;
+      }
+    </style>
+    <title>AIS Ant Colony Optimization Visualization</title>
+  <script defer src="main.js?69282bd95fd252aa4bd4"></script></head>
+  <body>
+    <div class="container-fluid h-100">
+      <div class="row h-100">
+        <div class="col-8 section h-100">
+          <div id="visualization" class="row">
+          </div>
+        </div>
+        <div class="col-4 section h-100">
+          <form>
+            <p>Welcome to AIS's Ant Colony Optimization Visualization! The objective of the "ants" is to find the shortest path to the food. This algorithm is applicable to any shortest-path problem, and excels in changing spaces (where the shortest-path does not stay static). Click on the visualization to add elements or try adjusting the parameters below!</p>
+            <div class="form-group">
+              <label for="selectorToggle">Select one of the options below to change what you click to place! Ctrl + Click to remove them.</label>
+              <div id='selectorToggle' class="btn-group btn-group-toggle" data-toggle="buttons">
+                <label class="btn btn-secondary btn-warning active">
+                  <input type="radio" name="selectors" value="1" checked> Wall
+                </label>
+                <label class="btn btn-secondary btn-success">
+                  <input type="radio" name="selectors" value="2"> Food Source
+                </label>
+                <label class="btn btn-secondary btn-dark">
+                  <input type="radio" name="selectors" value="3"> Ant Source
+                </label>
+              </div>  
+            </div>
+            <div class="form-group">
+              <label for="visSpeed">Visualization Speed</label>
+              <input type="number" class="form-control" id="visSpeed" value="1">
+              <small id="visHelp" class="form-text text-muted">Speed of Visualization - keep between 0 to 2 for stable results</small>
+            </div>
+            <div class="form-group">
+              <label for="antNum">Ants Per Source</label>
+              <input type="number" class="form-control" id="antNum" value="5">
+              <small id="visHelp" class="form-text text-muted">Number of ants per Ant Source</small>
+            </div>
+            <div class="form-group">
+              <label for="foodNum">Food Per Source</label>
+              <input type="number" class="form-control" id="foodNum" value="100">
+              <small id="visHelp" class="form-text text-muted">Number of food per Food Source</small>
+            </div>
+            <div class="form-group">
+              <label for="alpha">Pheromone Influence (Alpha)</label>
+              <input type="number" class="form-control" id="alpha" value="0.8">
+              <small id="alphaHelp" class="form-text text-muted">Influence pheromones have on ants</small>
+            </div>
+            <div class="form-group">
+              <label for="beta">Move Attractiveness (Beta)</label>
+              <input type="number" class="form-control" id="beta" value="1.3">
+              <small id="betaHelp" class="form-text text-muted">Influence move attractiveness heuristic has</small>
+            </div>
+            <div class="form-group">
+              <label for="qRate">Pheromone Update Rate (Q)</label>
+              <input type="number" class="form-control" id="qRate" value="5">
+              <small id="qRateHelp" class="form-text text-muted">Rate pheromones are updated</small>
+            </div>
+            <div class="form-group">
+              <label for=pRate">Pheromone Evaporation Coefficient (P)</label>
+              <input type="number" class="form-control" id="pRate" value="0.4">
+              <small id="pRateHelp" class="form-text text-muted">Rate pheromones evaporate</small>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="pixi.min.js"></script>
+    <!-- <script type="text/javascript" src="antcolony.js"></script>
+    <script type="text/javascript" src="main.js"></script> -->
+  </body>
+</html>

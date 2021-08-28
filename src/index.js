@@ -1,8 +1,11 @@
+import { distance, updateAntTargets } from './antcolony.js'
+import { Application, Graphics, Container, Stage } from 'pixi.js'
+
 //Create a Pixi Application
 var visualizationDiv = document.getElementById('visualization');
 
 let dims = visualizationDiv.getBoundingClientRect();
-let app = new PIXI.Application({
+let app = new Application({
     width: dims.width,
     height: dims.height,
     backgroundColor: 0xbbbbbb
@@ -40,7 +43,7 @@ class Ant {
         this._targetY = y;
         this._x = x;
         this._y = y;
-        this.vis = new PIXI.Graphics();
+        this.vis = new Graphics();
         this.vis.beginFill(0xff0000);
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
@@ -118,7 +121,7 @@ class AntSource {
         this.antLimit = antLimit;
         this._ants = [];
 
-        this.vis = new PIXI.Graphics();
+        this.vis = new Graphics();
         this.vis.beginFill(0x000000);
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
@@ -154,7 +157,7 @@ class FoodSource {
         this._y = y;
         this.foodAmount = defaultFoodAmount;
         
-        this.vis = new PIXI.Graphics();
+        this.vis = new Graphics();
         this.vis.beginFill(0x00dd00);
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
@@ -194,7 +197,7 @@ class Wall {
         this._x = x;
         this._y = y;
         
-        this.vis = new PIXI.Graphics();
+        this.vis = new Graphics();
         this.vis.beginFill(0x964b00);
         this.vis.drawCircle(0, 0, this._radius);
         this.vis.x = this._x;
@@ -215,7 +218,7 @@ class Wall {
     }
 }
 
-for(i = 0; i < 5; i++){
+for(let i = 0; i < 5; i++){
     let newX = 0;
     let newY = 0;
     let done = false;
@@ -224,7 +227,7 @@ for(i = 0; i < 5; i++){
         newY = (Math.random() * 0.8 + 0.1) * app.renderer.height;
         done = true;
         for(let source of foodSources){
-            if(distance(source.x, source.y, newX, newY) < source.radius){
+            if(distance(source.x, source.y, newX, newY) < source.radius + source.radius * 2){
                 newX = (Math.random() * 0.8 + 0.1) * app.renderer.width;
                 newY = (Math.random() * 0.8 + 0.1) * app.renderer.height;
                 done = false;
@@ -235,7 +238,7 @@ for(i = 0; i < 5; i++){
     foodSources.push(new FoodSource(newX, newY));
 }
 
-for(i = 0; i < 1; i++){
+for(let i = 0; i < 1; i++){
     let newX = 0;
     let newY = 0;
     let done = false;
@@ -244,7 +247,7 @@ for(i = 0; i < 1; i++){
         newY = (Math.random() * 0.8 + 0.1) * app.renderer.height;
         done = true;
         for(let source of antSources){
-            if(distance(source.x, source.y, newX, newY) < source.radius){
+            if(distance(source.x, source.y, newX, newY) < source.radius + source.radius * 2){
                 newX = (Math.random() * 0.8 + 0.1) * app.renderer.width;
                 newY = (Math.random() * 0.8 + 0.1) * app.renderer.height;
                 done = false;
@@ -253,7 +256,7 @@ for(i = 0; i < 1; i++){
         }
         if(done){
             for(let source of foodSources){
-                if(distance(source.x, source.y, newX, newY) < source.radius){
+                if(distance(source.x, source.y, newX, newY) < source.radius + source.radius * 2){
                     newX = (Math.random() * 0.8 + 0.1) * app.renderer.width;
                     newY = (Math.random() * 0.8 + 0.1) * app.renderer.height;
                     done = false;
@@ -266,64 +269,85 @@ for(i = 0; i < 1; i++){
 }
 
 app.stage.interactive = true;
-placeFood = false;
-placeAnt = false;
+let deleteObject = false;
 document.addEventListener('keydown', (event) => {
-    if(event.code == 'ShiftLeft' || event.code == 'ShiftRight'){
-        placeFood = true;
-    }
     if(event.code == 'ControlLeft' || event.code == 'ControlRight'){
-        placeAnt = true;
+        deleteObject = true;
     }
 });
 document.addEventListener('keyup', (event) => {
-    if(event.code == 'ShiftLeft' || event.code == 'ShiftRight'){
-        placeFood = false;
-    }
     if(event.code == 'ControlLeft' || event.code == 'ControlRight'){
-        placeAnt = false;
+        deleteObject = false;
     }
-})
+});
+
 app.renderer.plugins.interaction.on('pointerup', (event) => {
-    let allowPlacement = true;
-    let objectRadius = placeFood ? foodSourceRadius : (placeAnt ? antSourceRadius : wallRadius);
-    for(let wall of walls){
-        if(distance(wall.x, wall.y, event.data.global.x, event.data.global.y) < wall.radius + objectRadius){
-            allowPlacement = false;
-            break;
-        }
+    if(deleteObject){
+        walls = walls.filter(function(item){
+            if(distance(item.x, item.y, event.data.global.x, event.data.global.y) < item.radius){
+                item.destroy();
+                return false;
+            }
+            return true;
+        });
+        foodSources = foodSources.filter(function(item){
+            if(distance(item.x, item.y, event.data.global.x, event.data.global.y) < item.radius){
+                item.destroy();
+                return false;
+            }
+            return true;
+        });
+        antSources = antSources.filter(function(item){
+            if(distance(item.x, item.y, event.data.global.x, event.data.global.y) < item.radius){
+                item.destroy();
+                return false;
+            }
+            return true;
+        });
     }
-    if(allowPlacement){
-        for(let source of foodSources){
-            if(distance(source.x, source.y, event.data.global.x, event.data.global.y) < source.radius + objectRadius){
+    else{
+        let allowPlacement = true;
+        let placeFood = $('#selectorToggle input:radio:checked').val() == 2;
+        let placeAnt = $('#selectorToggle input:radio:checked').val() == 3;
+        let objectRadius = placeFood ? foodSourceRadius : (placeAnt ? antSourceRadius : wallRadius);
+        for(let wall of walls){
+            if(distance(wall.x, wall.y, event.data.global.x, event.data.global.y) < wall.radius + objectRadius){
                 allowPlacement = false;
                 break;
             }
         }
         if(allowPlacement){
-            for(let source of antSources){
+            for(let source of foodSources){
                 if(distance(source.x, source.y, event.data.global.x, event.data.global.y) < source.radius + objectRadius){
                     allowPlacement = false;
                     break;
                 }
             }
             if(allowPlacement){
-                if(placeFood){
-                    foodSources.push(new FoodSource(event.data.global.x, event.data.global.y));
+                for(let source of antSources){
+                    if(distance(source.x, source.y, event.data.global.x, event.data.global.y) < source.radius + objectRadius){
+                        allowPlacement = false;
+                        break;
+                    }
                 }
-                else if(placeAnt){
-                    antSources.push(new AntSource(event.data.global.x, event.data.global.y, defaultAntLimit));
-                }
-                else{
-                    // TODO: Fix ant freezing when placing wall on top of them
-                    walls.push(new Wall(event.data.global.x, event.data.global.y));
+                if(allowPlacement){
+                    if(placeFood){
+                        foodSources.push(new FoodSource(event.data.global.x, event.data.global.y));
+                    }
+                    else if(placeAnt){
+                        antSources.push(new AntSource(event.data.global.x, event.data.global.y, defaultAntLimit));
+                    }
+                    else{
+                        // TODO: Fix ant freezing when placing wall on top of them
+                        walls.push(new Wall(event.data.global.x, event.data.global.y));
+                    }
                 }
             }
         }
     }
 });
 
-loopCount = 0;
+let loopCount = 0;
 function gameLoop(delta){
     loopCount += 1;
     updateAntTargets(antSources, foodSources);
