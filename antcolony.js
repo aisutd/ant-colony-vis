@@ -1,11 +1,14 @@
 // Ant Colony Algorithm code
 
+const { getElementById } = require("domutils");
+const { values } = require("lodash");
+
 // Parameters
-var alpha = 0.8; // Constant used to control the influence of pheromones
-var beta = 1.3; // Constant used to control the influence of move attractiveness
-var Q = 5; // Constant used for pheromone updates
-var p = 0.3; // Pheromone evaporation coefficient
-var A = 100; // Constant used for calculating attraction
+var alpha = document.getElementById('alpha').value; // Constant used to control the influence of pheromones
+var beta = document.getElementById('beta').value; // Constant used to control the influence of move attractiveness
+var Q = document.getElementById('qRate').value; // Constant used for pheromone updates
+var p = document.getElementById('pRate').value; // Pheromone evaporation coefficient
+var A = document.getElementById('attraction').value;
 
 /**
  * Called for each ant during updateAntTargets

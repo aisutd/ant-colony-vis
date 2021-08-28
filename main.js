@@ -16,7 +16,8 @@ var foodSourceRadius = 20;
 var antRadius = 5;
 var wallRadius = 10;
 
-var defaultAntLimit = 3;
+var defaultAntLimit = document.getElementById('antNum').value;
+var defaultFoodAmount = document.getElementById('foodNum').value;
 
 var foodSources = [];
 var antSources = [];
@@ -98,9 +99,6 @@ class Ant {
                 moves.push([this._x + move[0], this._y + move[1]]);
             }
         }
-        if(moves.length == 0){
-            console.log('No valid moves!');
-        }
         return moves;
     }
 
@@ -114,11 +112,21 @@ class Ant {
         this._y = this._y + 1 * Math.sign(this._targetY - this._y) * delta;
         this.vis.x = this._x;
         this.vis.y = this._y;
-        for(let source of foodSources){
-            if(distance(this._x, this._y, source.x, source.y) < source.radius){
+        let finishedSources = [];
+        for(let i = 0; i < foodSources.length; i++){
+            if(distance(this._x, this._y, foodSources[i].x, foodSources[i].y) < foodSources[i].radius){
+                if(!foodSources[i].takeFood()){
+                    console.log(i);
+                    finishedSources.push(i);
+                }
                 this._hasFood = true;
                 break;
             }
+        }
+        finishedSources = finishedSources.sort().reverse();
+        for(let i of finishedSources){
+            console.log('Removed', i);
+            foodSources.splice(i, 1);
         }
         for(let source of antSources){
             if(distance(this._x, this._y, source.x, source.y) < source.radius){
@@ -184,7 +192,7 @@ class FoodSource {
         this._radius = foodSourceRadius;
         this._x = x;
         this._y = y;
-        this._foodAmount = 100;
+        this._foodAmount = defaultFoodAmount;
         
         this.vis = new PIXI.Graphics();
         this.vis.beginFill(0x00dd00);
@@ -206,6 +214,7 @@ class FoodSource {
         return this._radius;
     }
     takeFood(){
+        this._foodAmount = Math.min(document.getElementById('foodNum').value, this._foodAmount);
         this._foodAmount -= 1;
         // TODO: Have food source shrink when food taken
         if(this._foodAmount < 0){
@@ -360,7 +369,7 @@ function gameLoop(delta){
     loopCount += 1;
     updateAntTargets(antSources, foodSources);
     for(var i = 0; i < antSources.length; i++){
-        //Produce an ant if need be
+        antSources[i]._antLimit = document.getElementById('antNum').value;
         if((loopCount + ~~(Math.random() * 10)) % 15 == 0)
         {
             antSources[i].createAnt();

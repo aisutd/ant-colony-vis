@@ -30,6 +30,41 @@
         <div class="col-4 section h-100">
           <form>
             <p>Welcome to AIS's Ant Colony Optimization Visualization! The objective of the "ants" is to find the shortest path to the food. This algorithm is applicable to any shortest-path problem, and excels in changing spaces (where the shortest-path does not stay static). Click on the visualization to add elements or try adjusting the parameters below!</p>
+            <div class="form-group">
+              <label for="visSpeed">Visualization Speed</label>
+              <input type="number" class="form-control" id="visSpeed" value="1">
+              <small id="visHelp" class="form-text text-muted">Speed of Visualization - keep between 0 to 2 for stable results</small>
+            </div>
+            <div class="form-group">
+              <label for="antNum">Ants Per Source</label>
+              <input type="number" class="form-control" id="antNum" value="5">
+              <small id="visHelp" class="form-text text-muted">Number of ants per Ant Source</small>
+            </div>
+            <div class="form-group">
+              <label for="foodNum">Food Per Source</label>
+              <input type="number" class="form-control" id="foodNum" value="100">
+              <small id="visHelp" class="form-text text-muted">Number of food per Food Source</small>
+            </div>
+            <div class="form-group">
+              <label for="alpha">Pheromone Influence (Alpha)</label>
+              <input type="number" class="form-control" id="alpha" value="0.8">
+              <small id="alphaHelp" class="form-text text-muted">Influence pheromones have on ants</small>
+            </div>
+            <div class="form-group">
+              <label for="beta">Move Attractiveness (Beta)</label>
+              <input type="number" class="form-control" id="beta" value="1.3">
+              <small id="betaHelp" class="form-text text-muted">Influence move attractiveness heuristic has</small>
+            </div>
+            <div class="form-group">
+              <label for="qRate">Pheromone Update Rate (Q)</label>
+              <input type="number" class="form-control" id="qRate" value="5">
+              <small id="qRateHelp" class="form-text text-muted">Rate pheromones are updated</small>
+            </div>
+            <div class="form-group">
+              <label for=pRate">Pheromone Evaporation Coefficient (P)</label>
+              <input type="number" class="form-control" id="pRate" value="0.4">
+              <small id="pRateHelp" class="form-text text-muted">Rate pheromones evaporate</small>
+            </div>
           </form>
         </div>
       </div>
