@@ -41,6 +41,6 @@ module.exports = {
     ],
     output: {
         path: path.resolve(__dirname, 'docs/'),
-        filename: 'index.js'
+        filename: 'main.js'
     }
 }
