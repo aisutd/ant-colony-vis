@@ -1,5 +1,6 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HTMLWebpackPlugin = require('html-webpack-plugin')
+const path = require('path/posix')
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
 const webpack = 
 
@@ -37,5 +38,9 @@ module.exports = {
             hash: false,
             minify: false
         })
-    ]
+    ],
+    output: {
+        path: path.resolve(__dirname, 'docs/'),
+        filename: 'index.js'
+    }
 }

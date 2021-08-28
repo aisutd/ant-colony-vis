@@ -4,7 +4,7 @@ const HTMLWebpackPlugin = require('html-webpack-plugin')
 module.exports = {
     mode: 'development',
     devServer: {
-        contentBase: 'dist',
+        contentBase: 'docs',
         port: 3000
     },
     devtool: 'inline-source-map',
