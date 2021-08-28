@@ -1,6 +1,7 @@
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HTMLWebpackPlugin = require('html-webpack-plugin')
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
+const webpack = 
 
 module.exports = {
     mode: 'production',
@@ -33,7 +34,7 @@ module.exports = {
         new HTMLWebpackPlugin({
             template: 'build/index.html',
             filename: 'index.html',
-            hash: true,
+            hash: false,
             minify: false
         })
     ]

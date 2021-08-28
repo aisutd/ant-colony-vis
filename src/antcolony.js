@@ -6,15 +6,12 @@ const { values } = require("lodash");
 // Parameters
 var alpha = document.getElementById('alpha').value; // Constant used to control the influence of pheromones
 var beta = document.getElementById('beta').value; // Constant used to control the influence of move attractiveness
-var Q = document.getElementById('qRate').value; // Constant used for pheromone updates
-var p = document.getElementById('pRate').value; // Pheromone evaporation coefficient
-var A = document.getElementById('attraction').value;
 var explorationBias = 0.02;
 
 /**
  * Distance helper function
  */
-function distance(obj1x, obj1y, obj2x, obj2y){
+export function distance(obj1x, obj1y, obj2x, obj2y){
     return Math.sqrt(Math.pow(Math.abs(obj1x - obj2x), 2) + Math.pow(Math.abs(obj1y - obj2y), 2));
 }
 
@@ -24,9 +21,9 @@ function getDistanceToNearestFoodSource(pos, foodSources) {
     var posY = pos[1];
     for (let i = 0; i < foodSources.length; i++)
     {
-        x = foodSources[i].x;
-        y = foodSources[i].y;
-        dist = distance(posX, posY, x, y);
+        let x = foodSources[i].x;
+        let y = foodSources[i].y;
+        let dist = distance(posX, posY, x, y);
         if (dist < minDist)
         {
             minDist = dist;
@@ -41,9 +38,9 @@ function getDistanceToNearestAntSource(pos, antSources) {
     var posY = pos[1];
     for (let i = 0; i < antSources.length; i++)
     {
-        x = antSources[i].x;
-        y = antSources[i].y;
-        dist = distance(posX, posY, x, y);
+        let x = antSources[i].x;
+        let y = antSources[i].y;
+        let dist = distance(posX, posY, x, y);
         if (dist < minDist)
         {
             minDist = dist;
@@ -114,7 +111,6 @@ function getAttractivenessReturn(moves, antSources) {
 
 function getTarget(ant, foodSources, pheromoneGrid) {
     var possibleMoves = ant.possibleMoves; //Get available ant move targets
-
 
     if (ant._explorationTime <= 0)
     {
@@ -191,7 +187,7 @@ function getTarget(ant, foodSources, pheromoneGrid) {
         }
         
         var randomVal = Math.random();
-        val = 0;
+        let val = 0;
         for (var a = 0; a < 8; a++)
         {
             val = val + rawMoveProbs[a];
@@ -207,7 +203,7 @@ function getTarget(ant, foodSources, pheromoneGrid) {
 
 }
 
-export function getTargetReturn(ant, antSources, pheromoneGrid) {
+function getTargetReturn(ant, antSources, pheromoneGrid) {
     var possibleMoves = ant.possibleMoves; //Get available ant move targets
 
 
@@ -287,7 +283,7 @@ export function getTargetReturn(ant, antSources, pheromoneGrid) {
         }
 
         var randomVal = Math.random();
-        val = 0;
+        let val = 0;
         for (var a = 0; a < 8; a++)
         {
             val = val + rawMoveProbs[a];
@@ -305,7 +301,7 @@ export function getTargetReturn(ant, antSources, pheromoneGrid) {
  * @param {list} foodSources List of FoodSource(s) which are targets for Ants
  */
 
-export function updateAntTargets(antSources, foodSources, pheromoneGrid){
+export function updateAntTargets(antSources, foodSources, pheromoneGrid, ants){
     // Loop through all AntSources
     for(var antIndex = 0; antIndex < ants.length; antIndex++){
         var ant = ants[antIndex]; // Get ant

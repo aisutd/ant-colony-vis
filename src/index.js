@@ -32,6 +32,10 @@ var antSourceId = 0;
 var defaultAntLimit = document.getElementById('antNum').value;
 var defaultFoodAmount = document.getElementById('foodNum').value;
 
+var Q = document.getElementById('qRate').value; // Constant used for pheromone updates
+var p = document.getElementById('pRate').value; // Pheromone evaporation coefficient
+var A = document.getElementById('attraction').value;
+
 var foodSources = [];
 var antSources = [];
 var walls = [];
@@ -71,7 +75,7 @@ class PheromoneGrid {
         {
             this._grid[i] = new Array(this._width).fill(0.001);
         }
-        this.vis = new PIXI.Graphics();
+        this.vis = new Graphics();
         this.vis.beginFill(0xbbbbbb);
         this.vis.drawRect(0, 0, this._width, this._height);
         this.vis.x = this._x;
@@ -182,7 +186,7 @@ class PheromoneGrid {
         var solutions = this._solutions;
         //Pheromone deposited by ant k = Q/Lk if ant k uses curve xy in its tour (Lk = length of ant k's solution, Q = constant), 0 otherwise
         this.vis.destroy();
-        this.vis = new PIXI.Graphics();
+        this.vis = new Graphics();
         for (var a = 0; a < solutions.length; a++)
         {
             for (var b = 0; b < solutions[a].length; b++)
@@ -388,11 +392,6 @@ class Ant {
                 this.vis.drawCircle(0, 0, this._radius);
                 break;
             }
-        }
-        finishedSources = finishedSources.sort().reverse();
-        for(let i of finishedSources){
-            console.log('Removed', i);
-            foodSources.splice(i, 1);
         }
         for(let source of antSources){
             if(distance(this._x, this._y, source.x, source.y) < source.radius && this._hasFood){
@@ -609,7 +608,7 @@ class Wall {
     }
 }
 
-for(i = 0; i < numberOfFoodSources; i++){
+for(let i = 0; i < numberOfFoodSources; i++){
     let newX = 0;
     let newY = 0;
     let done = false;
@@ -629,7 +628,7 @@ for(i = 0; i < numberOfFoodSources; i++){
     foodSources.push(new FoodSource(newX, newY));
 }
 
-for(i = 0; i < numberOfAntSources; i++){
+for(let i = 0; i < numberOfAntSources; i++){
     let newX = 0;
     let newY = 0;
     let done = false;
@@ -764,7 +763,7 @@ function deleteAnts()
 }
 
 
-loopCount = 0;
+var loopCount = 0;
 function gameLoop(delta){
     loopCount += 1;
     var isRoundDone = true;
@@ -810,7 +809,7 @@ function gameLoop(delta){
     else
     {
         deleteAnts();
-        updateAntTargets(antSources, foodSources, grid);
+        updateAntTargets(antSources, foodSources, grid, ants);
         for(var i = 0; i < antSources.length; i++){
             //Produce an ant if need be
             while(antSources[i].createAnt());
