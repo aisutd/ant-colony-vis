@@ -29,12 +29,12 @@ var deleteIds = [];
 
 var antSourceId = 0;
 
-var defaultAntLimit = document.getElementById('antNum').value;
-var defaultFoodAmount = document.getElementById('foodNum').value;
+var defaultAntLimit = Number(document.getElementById('antNum').value);
+var defaultFoodAmount = Number(document.getElementById('foodNum').value);
 
-var Q = document.getElementById('qRate').value; // Constant used for pheromone updates
-var p = document.getElementById('pRate').value; // Pheromone evaporation coefficient
-var A = document.getElementById('attraction').value;
+var Q = Number(document.getElementById('qRate').value); // Constant used for pheromone updates
+var p = Number(document.getElementById('pRate').value); // Pheromone evaporation coefficient
+var A = Number(document.getElementById('attraction').value);
 
 var foodSources = [];
 var antSources = [];
