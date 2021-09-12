@@ -117,7 +117,6 @@ class PheromoneGrid {
         {
             y = this._height - 1;
         }
-        console.log(this, this._grid, y, x);
         return this._grid[y][x];
     }
 
@@ -756,14 +755,14 @@ app.renderer.plugins.interaction.on('pointerup', (event) => {
                 }
                 if(allowPlacement){
                     if(placeFood){
-                        foodSources.push(new FoodSource(event.data.global.x, event.data.global.y));
+                        foodSources.push(new FoodSource(Math.floor(event.data.global.x), Math.floor(event.data.global.y)));
                     }
                     else if(placeAnt){
-                        antSources.push(new AntSource(event.data.global.x, event.data.global.y, defaultAntLimit));
+                        antSources.push(new AntSource(Math.floor(event.data.global.x), Math.floor(event.data.global.y), defaultAntLimit));
                     }
                     else{
                         // TODO: Fix ant freezing when placing wall on top of them
-                        walls.push(new Wall(event.data.global.x, event.data.global.y));
+                        walls.push(new Wall(Math.floor(event.data.global.x), Math.floor(event.data.global.y)));
                     }
                 }
             }
