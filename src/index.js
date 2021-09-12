@@ -800,7 +800,7 @@ var loopCount = 0;
 function gameLoop(delta){
     defaultAntLimit = Number(document.getElementById('antNum').value);
     defaultFoodAmount = Number(document.getElementById('foodNum').value);
-    p = Number(document.getElementById('pRate').value); // Pheromone evaporation coefficient
+    p = Math.min(0.99, Number(document.getElementById('pRate').value)); // Pheromone evaporation coefficient
     Q = Number(document.getElementById('qRate').value); // Constant used for pheromone updates
     // A = Number(document.getElementById('attraction').value);
     loopCount += 1;
