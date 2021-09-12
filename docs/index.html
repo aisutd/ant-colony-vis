@@ -45,11 +45,6 @@
               </div>  
             </div>
             <div class="form-group">
-              <label for="visSpeed">Visualization Speed</label>
-              <input type="number" class="form-control" id="visSpeed" value="1">
-              <small id="visHelp" class="form-text text-muted">Speed of Visualization - keep between 0 to 2 for stable results</small>
-            </div>
-            <div class="form-group">
               <label for="antNum">Ants Per Source</label>
               <input type="number" class="form-control" id="antNum" value="5">
               <small id="visHelp" class="form-text text-muted">Number of ants per Ant Source</small>
@@ -80,9 +75,9 @@
               <small id="pRateHelp" class="form-text text-muted">Rate pheromones evaporate</small>
             </div>
             <div class="form-group">
-              <label for="attraction">Attraction Constant (A)</label>
-              <input type="number" class="form-control" id="attraction" value="100">
-              <small id="attractionHelp" class="form-text text-muted">Attraction constant</small>
+              <label for="expBias">Exploration Bias</label>
+              <input type="number" class="form-control" id="expBias" value="0.02">
+              <small id="expBiasHelp" class="form-text text-muted">Probability ants prefer exploration (1.0 = totally random)</small>
             </div>
           </form>
         </div>

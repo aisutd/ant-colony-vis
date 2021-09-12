@@ -34,7 +34,7 @@ var defaultFoodAmount = Number(document.getElementById('foodNum').value);
 
 var Q = Number(document.getElementById('qRate').value); // Constant used for pheromone updates
 var p = Number(document.getElementById('pRate').value); // Pheromone evaporation coefficient
-var A = Number(document.getElementById('attraction').value);
+// var A = Number(document.getElementById('attraction').value);
 
 var foodSources = [];
 var antSources = [];
@@ -570,9 +570,42 @@ class FoodSource {
         app.stage.addChild(this.vis);
     }
     destroy(){
-        app.stage.removeChild(this.vis);
-        var i = foodSources.indexOf(this);
-        foodSources.splice(i,1);
+        if(foodSources.length == 1){
+            let newX = 0;
+            let newY = 0;
+            let done = false;
+            while(!done){
+                newX = Math.floor((Math.random() * 0.8 + 0.1) * app.renderer.width);
+                newY = Math.floor((Math.random() * 0.8 + 0.1) * app.renderer.height);
+                done = true;
+                for(let source of antSources){
+                    if(distance(source.x, source.y, newX, newY) < source.radius * 4.0){
+                        newX = Math.floor((Math.random() * 0.8 + 0.1) * app.renderer.width);
+                        newY = Math.floor((Math.random() * 0.8 + 0.1) * app.renderer.height);
+                        done = false;
+                        break;
+                    }
+                }
+                for(let source of walls){
+                    if(distance(source.x, source.y, newX, newY) < source.radius * 4.0){
+                        newX = Math.floor((Math.random() * 0.8 + 0.1) * app.renderer.width);
+                        newY = Math.floor((Math.random() * 0.8 + 0.1) * app.renderer.height);
+                        done = false;
+                        break;
+                    }
+                }
+            }
+            this.vis.x = newX;
+            this._x = newX;
+            this.vis.y = newY;
+            this._y = newY;
+            this._foodAmount = defaultFoodAmount;
+        }
+        else{
+            app.stage.removeChild(this.vis);
+            var i = foodSources.indexOf(this);
+            foodSources.splice(i,1);
+        }
     }
 }
 
@@ -765,6 +798,11 @@ function deleteAnts()
 
 var loopCount = 0;
 function gameLoop(delta){
+    defaultAntLimit = Number(document.getElementById('antNum').value);
+    defaultFoodAmount = Number(document.getElementById('foodNum').value);
+    p = Number(document.getElementById('pRate').value); // Pheromone evaporation coefficient
+    Q = Number(document.getElementById('qRate').value); // Constant used for pheromone updates
+    // A = Number(document.getElementById('attraction').value);
     loopCount += 1;
     var isRoundDone = true;
     var antsCreated = 0;

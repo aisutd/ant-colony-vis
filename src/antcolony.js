@@ -4,9 +4,9 @@ const { getElementById } = require("domutils");
 const { values } = require("lodash");
 
 // Parameters
-var alpha = document.getElementById('alpha').value; // Constant used to control the influence of pheromones
-var beta = document.getElementById('beta').value; // Constant used to control the influence of move attractiveness
-var explorationBias = 0.02;
+var alpha = Number(document.getElementById('alpha').value); // Constant used to control the influence of pheromones
+var beta = Number(document.getElementById('beta').value); // Constant used to control the influence of move attractiveness
+var explorationBias = Number(document.getElementById('expBias').value);
 
 /**
  * Distance helper function
@@ -302,6 +302,8 @@ function getTargetReturn(ant, antSources, pheromoneGrid) {
  */
 
 export function updateAntTargets(antSources, foodSources, pheromoneGrid, ants){
+    alpha = Number(document.getElementById('alpha').value); // Constant used to control the influence of pheromones
+    beta = Number(document.getElementById('beta').value); // Constant used to control the influence of move attractiveness
     // Loop through all AntSources
     for(var antIndex = 0; antIndex < ants.length; antIndex++){
         var ant = ants[antIndex]; // Get ant
