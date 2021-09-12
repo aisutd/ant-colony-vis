@@ -117,6 +117,7 @@ class PheromoneGrid {
         {
             y = this._height - 1;
         }
+        console.log(this, this._grid, y, x);
         return this._grid[y][x];
     }
 
